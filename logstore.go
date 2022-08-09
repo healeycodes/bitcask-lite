@@ -30,7 +30,8 @@ type LogStoreOptions struct {
 	maxLogFileBytes int
 }
 
-// StreamGet streams a value from the log store
+// StreamGet streams a value from the log store. Go routine safe as the map
+// shard is locked during get/set
 func (logStore *LogStore) StreamGet(key string, w io.Writer) (bool, error) {
 	access := logStore.keys.AccessShard(key)
 	defer access.Unlock()
@@ -61,7 +62,7 @@ func (logStore *LogStore) StreamGet(key string, w io.Writer) (bool, error) {
 	return true, nil
 }
 
-// Set sets a value
+// Set sets a value. Go routine safe as the map shard is locked during get/set
 func (logStore *LogStore) Set(key string, expire int, value []byte) error {
 	access := logStore.keys.AccessShard(key)
 	defer access.Unlock()
@@ -77,6 +78,7 @@ func (logStore *LogStore) Set(key string, expire int, value []byte) error {
 	line := []byte(fmt.Sprintf("%d,%d,%d,%s,", expire, len(key), len(value), key))
 	lineLength := len(line) + len(value) + 1 // And the ending comma
 
+	// Roll log file if we need to
 	if end+lineLength >= logStore.opts.maxLogFileBytes {
 		err = logStore.nextLogFile()
 		if err != nil {
@@ -100,7 +102,6 @@ func (logStore *LogStore) Set(key string, expire int, value []byte) error {
 		len(value),
 	}
 	logStore.keys.Set(key, item)
-
 	return nil
 }
 
@@ -196,11 +197,7 @@ func parseLogFile(path string) (map[string]Item, error) {
 	return keys, nil
 }
 
-// CreateLogStore creates a new log store. If keys _aren't_ passed
-// it will load all log files from disk. When the program starts
-// we want to load all keys into memory. When a log file gets too
-// large during program execution, we want to create a new log file
-// with the already-in-memory keys.
+// CreateLogStore creates a new log store and loads existing log files from disk
 func CreateLogStore(logDir string, opts *LogStoreOptions) (*LogStore, error) {
 	if opts == nil {
 		opts = &LogStoreOptions{maxLogFileBytes: MAX_LOG_FILE_BYTES}
@@ -212,8 +209,7 @@ func CreateLogStore(logDir string, opts *LogStoreOptions) (*LogStore, error) {
 	}
 
 	// Load log files from disk one-by-one in lexical order (file names
-	// start with a timestamp). No need to do this concurrently yet.
-	// The speed at which this program starts is not currently a concern
+	// start with a timestamp). No need to do this concurrently yet
 	logFiles, err := ioutil.ReadDir(logDir)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't read directory %s: %s", logDir, err)
@@ -280,7 +276,6 @@ func createLogFile(logDir string) (*os.File, error) {
 
 func rndFileString(length int) []byte {
 	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
 	b := make([]byte, length)
 	for i := range b {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
