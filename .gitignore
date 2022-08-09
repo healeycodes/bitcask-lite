@@ -1,5 +1,5 @@
 store/
-test_dbs/temp
+test_dbs/temp/test*
 
 # Binaries for programs and plugins
 *.exe
