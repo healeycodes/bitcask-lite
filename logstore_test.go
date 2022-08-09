@@ -28,32 +28,38 @@ func TestGet(t *testing.T) {
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
 
-	found, err := logStore.StreamGet("a", w)
+	k := "a"
+	v := "b"
+	found, err := logStore.StreamGet(k, w)
 	if found != true && err != nil {
-		t.Errorf("for \"a\", found should be true and err should be nil: %s", err)
+		t.Errorf("for \"%s\", found should be true and err should be nil: %s", k, err)
 	}
-	if b.String() != "b" {
-		t.Errorf("got \"%s\"; want \"b\"", b.String())
+	if b.String() != v {
+		t.Errorf("got \"%s\"; want \"%s\"", b.String(), v)
 	}
 
 	b.Reset()
 
-	found, err = logStore.StreamGet("c", w)
+	k = "c"
+	v = "dd"
+	found, err = logStore.StreamGet(k, w)
 	if found != true && err != nil {
-		t.Errorf("for \"c\", found should be true and err should be nil: %s", err)
+		t.Errorf("for \"%s\", found should be true and err should be nil: %s", k, err)
 	}
-	if b.String() != "dd" {
-		t.Errorf("got \"%s\"; want \"dd\"", b.String())
+	if b.String() != v {
+		t.Errorf("got \"%s\"; want \"%s\"", b.String(), v)
 	}
 
 	b.Reset()
 
-	found, err = logStore.StreamGet("e", w)
+	k = "e"
+	v = "f"
+	found, err = logStore.StreamGet(k, w)
 	if found != true && err != nil {
-		t.Errorf("for \"e\", found should be true and err should be nil: %s", err)
+		t.Errorf("for \"%s\", found should be true and err should be nil: %s", k, err)
 	}
-	if b.String() != "f" {
-		t.Errorf("got \"%s\"; want \"f\"", b.String())
+	if b.String() != v {
+		t.Errorf("got \"%s\"; want \"%s\"", b.String(), v)
 	}
 }
 
@@ -72,12 +78,13 @@ func TestGetExpired(t *testing.T) {
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
 
-	found, err := logStore.StreamGet("x", w)
+	k := "x"
+	found, err := logStore.StreamGet(k, w)
 	if found != false && err != nil {
-		t.Errorf("for \"x\", found should be false and err should be nil: %s", err)
+		t.Errorf("for \"%s\", found should be false and err should be nil: %s", k, err)
 	}
 	if len(b.String()) != 0 {
-		t.Errorf("for \"x\", bytes shouldn't be written")
+		t.Errorf("for \"%s\", bytes shouldn't be written", k)
 	}
 }
 
@@ -100,52 +107,58 @@ func TestSet(t *testing.T) {
 	}
 
 	// Add item
-	err = logStore.Set("n", int(time.Now().UnixMilli())+1000, []byte("m"))
+	k := "n"
+	v := "m"
+	err = logStore.Set(k, int(time.Now().UnixMilli())+1000, []byte(v))
 	if err != nil {
-		t.Errorf("couldn't set key \"n\" %s", err)
+		t.Errorf("couldn't set key \"%s\" %s", k, err)
 	}
 
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
 
 	// Check add was successful
-	found, err := logStore.StreamGet("n", w)
+	found, err := logStore.StreamGet(k, w)
 	if found != true && err != nil {
-		t.Errorf("for \"n\", found should be true and err should be nil: %s", err)
+		t.Errorf("for \"%s\", found should be true and err should be nil: %s", k, err)
 	}
-	if b.String() != "m" {
-		t.Errorf("got \"%s\"; want \"m\"", b.String())
+	if b.String() != v {
+		t.Errorf("got \"%s\"; want \"%s\"", b.String(), v)
 	}
 
 	b.Reset()
 
 	// Overwrite existing item
-	err = logStore.Set("n", int(time.Now().UnixMilli())+1000, []byte("mm"))
+	k = "n"
+	v = "mm"
+	err = logStore.Set(k, int(time.Now().UnixMilli())+1000, []byte(v))
 	if err != nil {
-		t.Errorf("couldn't set key \"n\" for the second time %s", err)
+		t.Errorf("couldn't set key \"%s\" for the second time %s", k, err)
 	}
 
 	// Check overwrite was successful
-	found, err = logStore.StreamGet("n", w)
+	found, err = logStore.StreamGet(k, w)
 	if found != true && err != nil {
-		t.Errorf("for \"n\", found should be true and err should be nil: %s", err)
+		t.Errorf("for \"%s\", found should be true and err should be nil: %s", k, err)
 	}
-	if b.String() != "mm" {
-		t.Errorf("got \"%s\"; want \"mm\"", b.String())
+	if b.String() != v {
+		t.Errorf("got \"%s\"; want \"%s\"", b.String(), v)
 	}
 
 	b.Reset()
 
 	// Add already expired item
-	err = logStore.Set("ex", int(time.Now().UnixMilli())-1000, []byte("1"))
+	k = "ex"
+	v = "1"
+	err = logStore.Set(k, int(time.Now().UnixMilli())-1000, []byte("1"))
 	if err != nil {
-		t.Errorf("couldn't set key \"ex\" %s", err)
+		t.Errorf("couldn't set key \"%s\" %s", k, err)
 	}
 
 	// Check expired item isn't found
-	found, err = logStore.StreamGet("ex", w)
+	found, err = logStore.StreamGet(k, w)
 	if found != false && err != nil {
-		t.Errorf("for \"ex\", found should be false and err should be nil: %s", err)
+		t.Errorf("for \"%s\", found should be false and err should be nil: %s", k, err)
 	}
 	if len(b.String()) != 0 {
 		t.Errorf("not found items should write to writer")
@@ -172,37 +185,41 @@ func TestRollingLogFile(t *testing.T) {
 	}
 
 	// Add to the first log file
-	err = logStore.Set("a", int(time.Now().UnixMilli())+1000, []byte("________________1"))
+	k1 := "a"
+	v1 := "________________1"
+	err = logStore.Set(k1, int(time.Now().UnixMilli())+1000, []byte(v1))
 	if err != nil {
-		t.Errorf("couldn't set key \"n\" %s", err)
+		t.Errorf("couldn't set key \"%s\" %s", k1, err)
 	}
 
 	// Add to the second log file
-	err = logStore.Set("b", int(time.Now().UnixMilli())+1000, []byte("________________2"))
+	k2 := "b"
+	v2 := "________________2"
+	err = logStore.Set(k2, int(time.Now().UnixMilli())+1000, []byte(v2))
 	if err != nil {
-		t.Errorf("couldn't set key \"n\" %s", err)
+		t.Errorf("couldn't set key \"%s\" %s", k2, err)
 	}
 
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
 
 	// Check adds were successful
-	found, err := logStore.StreamGet("a", w)
+	found, err := logStore.StreamGet(k1, w)
 	if found != true && err != nil {
-		t.Errorf("for \"a\", found should be true and err should be nil: %s", err)
+		t.Errorf("for \"%s\", found should be true and err should be nil: %s", k1, err)
 	}
-	if b.String() != "________________1" {
-		t.Errorf("got \"%s\"; want \"________________1\"", b.String())
+	if b.String() != v1 {
+		t.Errorf("got \"%s\"; want \"%s\"", b.String(), v1)
 	}
 
 	b.Reset()
 
-	found, err = logStore.StreamGet("b", w)
+	found, err = logStore.StreamGet(k2, w)
 	if found != true && err != nil {
-		t.Errorf("for \"b\", found should be true and err should be nil: %s", err)
+		t.Errorf("for \"%s\", found should be true and err should be nil: %s", k2, err)
 	}
-	if b.String() != "________________2" {
-		t.Errorf("got \"%s\"; want \"________________2\"", b.String())
+	if b.String() != v2 {
+		t.Errorf("got \"%s\"; want \"%s\"", b.String(), v2)
 	}
 }
 
