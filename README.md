@@ -22,15 +22,15 @@ Not yet implemented: log file merging, hint files.
 
 ### HTTP API
 
-- GET `/get?key=a`
-- POST `/set?key=b&expire=1759300313415`
-  - Body is read as the value
+- GET: `/get?key=a`
+- POST: `/set?key=b&expire=1759300313415`
+  - HTTP body is read as the value
   - `expire` is optional (default is infinite)
-- DELETE `/delete?key=c
+- DELETE: `/delete?key=c`
 
 ## Performance
 
-The in-memory store is a concurrent map of maps. Each map shard has a lock to allow concurrent access.
+The in-memory key store is a concurrent map of maps. Each map shard has a lock to allow concurrent access.
 
 Reading a value requires a single disk seek.
 
