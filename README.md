@@ -2,11 +2,11 @@
 
 A database and server — partial implementation of the Bitcask paper: https://riak.com/assets/bitcask-intro.pdf
 
-- low latency per item read or written
-- handles datasets larger than RAM
-- human readable data format
-- small specification
-- just uses the Go standard library
+- Low latency per item read or written
+- Handles datasets larger than RAM
+- Human readable data format
+- Small specification
+- Just uses the Go standard library
 
 ## Spec
 
