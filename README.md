@@ -18,7 +18,7 @@ An item with a key of `a` and a value of `b` that expires on 10 Aug 2022 looks l
 1759300313415,1,1,a,b,
 ```
 
-Not yet implemented: log file merging, hint files.
+Not yet implemented: checksums, log file merging, hint files.
 
 ### HTTP API
 
