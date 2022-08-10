@@ -30,7 +30,7 @@ Not yet implemented: log file merging, hint files.
 
 ## Performance
 
-The in-memory key store is a concurrent map of maps. Each map shard has a lock to allow concurrent access.
+The in-memory key store is a concurrent map. Each map shard has a lock to allow concurrent access.
 
 Reading a value requires a single disk seek.
 
