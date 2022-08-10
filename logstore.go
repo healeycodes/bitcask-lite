@@ -20,7 +20,7 @@ const SHARDS = 128
 
 type LogStore struct {
 	logDir    string
-	keys      *MapOfMaps[Item]
+	keys      *ConcurrentMap[Item]
 	logFile   *os.File
 	logFileMu sync.Mutex
 	opts      *LogStoreOptions
@@ -232,13 +232,13 @@ func CreateLogStore(logDir string, opts *LogStoreOptions) (*LogStore, error) {
 		return logFiles[i].Name() < logFiles[j].Name()
 	})
 
-	mapOfMaps := NewMapOfMaps[Item](SHARDS)
+	concurrentMap := NewConcurrentMap[Item](SHARDS)
 	for _, fileInfo := range logFiles {
 		keys, err := parseLogFile(path.Join(logDir, fileInfo.Name()))
 		if err != nil {
 			return nil, fmt.Errorf("couldn't parse log file %s: %s", path.Join(logDir, fileInfo.Name()), err)
 		}
-		mapOfMaps.MSet(keys)
+		concurrentMap.MSet(keys)
 	}
 
 	var logFile *os.File
@@ -272,7 +272,7 @@ func CreateLogStore(logDir string, opts *LogStoreOptions) (*LogStore, error) {
 
 	return &LogStore{
 		logDir,
-		mapOfMaps,
+		concurrentMap,
 		logFile,
 		sync.Mutex{},
 		opts,

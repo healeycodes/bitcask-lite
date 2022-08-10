@@ -50,4 +50,4 @@ go test ./... # unit tests
 
 It's a fairly standard Go application. Set `PORT`, `DATABASE_DIR`, and run.
 
-Deploys to `railway.app` with zero configuration (presumably most platforms as a service).
+Deploys to `railway.app` with zero configuration (presumably most platforms as a service as well).

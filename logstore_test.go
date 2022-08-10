@@ -13,6 +13,7 @@ import (
 	"time"
 )
 
+// Use fixtures to test getting values from a loaded log file
 func TestGet(t *testing.T) {
 	dir, err := filepath.Abs(path.Join("test_dbs", "basic"))
 	if err != nil {
@@ -63,6 +64,7 @@ func TestGet(t *testing.T) {
 	}
 }
 
+// Use fixtures to test (not) getting expired values from a loaded log file
 func TestGetExpired(t *testing.T) {
 	dir, err := filepath.Abs(path.Join("test_dbs", "basic"))
 	if err != nil {
@@ -88,6 +90,7 @@ func TestGetExpired(t *testing.T) {
 	}
 }
 
+// Use fixtures to test (not) getting overwritten/deleted values from a loaded log file
 func TestGetExpiredLogFileOverwrite(t *testing.T) {
 	dir, err := filepath.Abs(path.Join("test_dbs", "basic"))
 	if err != nil {
@@ -113,6 +116,7 @@ func TestGetExpiredLogFileOverwrite(t *testing.T) {
 	}
 }
 
+// Test setting/getting in an active log file
 func TestSet(t *testing.T) {
 	tempDir, err := ioutil.TempDir("test_dbs/temp", "testset")
 	if err != nil {
@@ -190,6 +194,7 @@ func TestSet(t *testing.T) {
 	}
 }
 
+// Test log files are rolled correctly
 func TestRollingLogFile(t *testing.T) {
 	tempDir, err := ioutil.TempDir("test_dbs/temp", "testrollinglogfile")
 	if err != nil {

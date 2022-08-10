@@ -2,11 +2,11 @@ package main
 
 import "sync"
 
-// This map of maps is similar to https://github.com/orcaman/concurrent-map
+// This concurrent map is similar to https://github.com/orcaman/concurrent-map
 // except that the locking of map shards is performed manually instead of automatically
 // this is because sometimes we need to perform I/O while the map shard is locked
 
-type MapOfMaps[V any] []*MapShard[V]
+type ConcurrentMap[V any] []*MapShard[V]
 
 type MapShard[V any] struct {
 	items map[string]V
@@ -14,8 +14,8 @@ type MapShard[V any] struct {
 }
 
 // Create a new map of maps
-func NewMapOfMaps[V any](shards int) *MapOfMaps[V] {
-	m := make(MapOfMaps[V], SHARDS)
+func NewConcurrentMap[V any](shards int) *ConcurrentMap[V] {
+	m := make(ConcurrentMap[V], SHARDS)
 
 	for i := 0; i < SHARDS; i++ {
 		m[i] = &MapShard[V]{
@@ -27,20 +27,20 @@ func NewMapOfMaps[V any](shards int) *MapOfMaps[V] {
 }
 
 // AccessShard locks and returns the lock for the relevant shard
-func (m MapOfMaps[V]) AccessShard(key string) *sync.Mutex {
+func (m ConcurrentMap[V]) AccessShard(key string) *sync.Mutex {
 	shard := m.getShard(key)
 	shard.mu.Lock()
 	return shard.mu
 }
 
 // Set sets a value
-func (m MapOfMaps[V]) Set(key string, value V) {
+func (m ConcurrentMap[V]) Set(key string, value V) {
 	shard := m.getShard(key)
 	shard.items[key] = value
 }
 
 // Mset merges multiple maps
-func (m MapOfMaps[V]) MSet(data map[string]V) {
+func (m ConcurrentMap[V]) MSet(data map[string]V) {
 	for key, value := range data {
 		shard := m.getShard(key)
 		shard.items[key] = value
@@ -48,19 +48,19 @@ func (m MapOfMaps[V]) MSet(data map[string]V) {
 }
 
 // Get gets a value
-func (m MapOfMaps[V]) Get(key string) (V, bool) {
+func (m ConcurrentMap[V]) Get(key string) (V, bool) {
 	shard := m.getShard(key)
 	val, ok := shard.items[key]
 	return val, ok
 }
 
 // Delete removes a value
-func (m MapOfMaps[V]) Delete(key string) {
+func (m ConcurrentMap[V]) Delete(key string) {
 	shard := m.getShard(key)
 	delete(shard.items, key)
 }
 
-func (m MapOfMaps[V]) getShard(key string) *MapShard[V] {
+func (m ConcurrentMap[V]) getShard(key string) *MapShard[V] {
 	return m[uint(fnv32(key))%uint(SHARDS)]
 }
 
