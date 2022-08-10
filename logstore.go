@@ -31,7 +31,7 @@ type LogStoreOptions struct {
 }
 
 // StreamGet streams a value from the log store.
-// Go routine safe due to map sharps with locks
+// Goroutine safe due to map sharps with locks
 func (logStore *LogStore) StreamGet(key string, w io.Writer) (bool, error) {
 	access := logStore.keys.AccessShard(key)
 	defer access.Unlock()
@@ -63,7 +63,7 @@ func (logStore *LogStore) StreamGet(key string, w io.Writer) (bool, error) {
 }
 
 // Set sets a value. Setting `expire` to 0 is effectively a delete operation.
-// Go routine safe due to map sharps with locks, and a log file lock
+// Goroutine safe due to map sharps with locks, and a log file lock
 func (logStore *LogStore) Set(key string, expire int, value []byte) error {
 	access := logStore.keys.AccessShard(key)
 	defer access.Unlock()
