@@ -49,6 +49,7 @@ func (logStore *LogStore) StreamGet(key string, w io.Writer) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("couldn't open log file %s: %s", logStore.logFile.Name(), err)
 	}
+	defer f.Close()
 
 	_, err = f.Seek(int64(item.valuePos), 0)
 	if err != nil {
