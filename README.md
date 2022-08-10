@@ -1,6 +1,6 @@
 # bitcask-lite
 
-A database and server — partial implementation of the Bitcask paper: https://riak.com/assets/bitcask-intro.pdf
+A key/value database and server — partial implementation of the Bitcask paper: https://riak.com/assets/bitcask-intro.pdf
 
 - Low latency per item read or written
 - Handles datasets larger than RAM
