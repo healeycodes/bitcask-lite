@@ -30,8 +30,8 @@ type LogStoreOptions struct {
 	maxLogFileBytes int
 }
 
-// StreamGet streams a value from the log store. Go routine safe as the map
-// shard is locked during get/set
+// StreamGet streams a value from the log store.
+// Go routine safe due to map sharps with locks
 func (logStore *LogStore) StreamGet(key string, w io.Writer) (bool, error) {
 	access := logStore.keys.AccessShard(key)
 	defer access.Unlock()
@@ -62,7 +62,8 @@ func (logStore *LogStore) StreamGet(key string, w io.Writer) (bool, error) {
 	return true, nil
 }
 
-// Set sets a value. Go routine safe as the map shard is locked during get/set
+// Set sets a value. Setting `expire` to 0 is effectively a delete operation.
+// Go routine safe due to map sharps with locks, and a log file lock
 func (logStore *LogStore) Set(key string, expire int, value []byte) error {
 	access := logStore.keys.AccessShard(key)
 	defer access.Unlock()
@@ -101,7 +102,16 @@ func (logStore *LogStore) Set(key string, expire int, value []byte) error {
 		end + len(line),
 		len(value),
 	}
-	logStore.keys.Set(key, item)
+
+	// To support deletes, instead of adding expired items
+	// to the in-memory key dictionary, remove the old key
+	if int(time.Now().UnixMilli()) >= expire {
+		logStore.keys.Delete(string(key))
+		return nil
+	} else {
+		logStore.keys.Set(key, item)
+	}
+
 	return nil
 }
 
@@ -192,6 +202,9 @@ func parseLogFile(path string) (map[string]Item, error) {
 				valueOffset,
 				valueSize,
 			}
+		} else {
+			// Don't load expired items into memory, clean up items that have been overwritten
+			delete(keys, string(key))
 		}
 	}
 	return keys, nil

@@ -88,6 +88,31 @@ func TestGetExpired(t *testing.T) {
 	}
 }
 
+func TestGetExpiredLogFileOverwrite(t *testing.T) {
+	dir, err := filepath.Abs(path.Join("test_dbs", "basic"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	logStore, err := CreateLogStore(dir, nil)
+	if err != nil {
+		t.Errorf("couldn't create log store %s", err)
+		return
+	}
+
+	var b bytes.Buffer
+	w := bufio.NewWriter(&b)
+
+	k := "q"
+	found, err := logStore.StreamGet(k, w)
+	if found != false && err != nil {
+		t.Errorf("for \"%s\", found should be false and err should be nil: %s", k, err)
+	}
+	if len(b.String()) != 0 {
+		t.Errorf("for \"%s\", bytes shouldn't be written", k)
+	}
+}
+
 func TestSet(t *testing.T) {
 	tempDir, err := ioutil.TempDir("test_dbs/temp", "testset")
 	if err != nil {

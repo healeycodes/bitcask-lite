@@ -18,6 +18,7 @@ func main() {
 
 	http.HandleFunc("/get", get(logStore))
 	http.HandleFunc("/set", set(logStore))
+	http.HandleFunc("/delete", del(logStore))
 	http.ListenAndServe(":"+getEnv("PORT", "8000"), nil)
 }
 
@@ -81,6 +82,24 @@ func set(logStore *LogStore) func(http.ResponseWriter, *http.Request) {
 		err = logStore.Set(key, expire, value)
 		if err != nil {
 			log.Printf("couldn't set %s: %s", key, err)
+			w.WriteHeader(500)
+			return
+		}
+	}
+}
+
+func del(logStore *LogStore) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		key := req.URL.Query().Get("key")
+		if key == "" {
+			w.WriteHeader(400)
+			w.Write([]byte("missing ?key"))
+			return
+		}
+
+		err := logStore.Set(key, 0, []byte(""))
+		if err != nil {
+			log.Printf("couldn't delete %s: %s", key, err)
 			w.WriteHeader(500)
 			return
 		}
