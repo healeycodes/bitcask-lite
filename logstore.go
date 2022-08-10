@@ -58,6 +58,8 @@ func (logStore *LogStore) StreamGet(key string, w io.Writer) (bool, error) {
 
 	_, err = io.CopyN(w, f, int64(item.valueSize))
 	if err != nil {
+		// TODO: hmm, should this return false?
+		// not really because the key _was_ found..
 		return true, err
 	}
 	return true, nil
