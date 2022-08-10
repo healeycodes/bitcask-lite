@@ -10,9 +10,7 @@ A database and server — partial implementation of the Bitcask paper: https://r
 
 ## Spec
 
-Items are stored in log files on disk to persist data. Keys are kept in-memory and point to values in log files. All new items are written to the active log file.
-
-Log files contain any number of adjacent items with the schema: `timestamp, keySize, valueSize, key, value,`.
+Items are stored in log files on disk to persist data. Keys are kept in-memory and point to values in log files. All new items are written to the active log file. Log files contain any number of adjacent items with the schema: `timestamp, keySize, valueSize, key, value,`.
 
 An item with a key of `a` and a value of `b` that expires on 10 Aug 2022 looks like this on disk:
 
@@ -23,11 +21,11 @@ An item with a key of `a` and a value of `b` that expires on 10 Aug 2022 looks l
 In memory, it's something like this:
 
 ```golang
-&Item {
-	"1660073049777-XVlBzgbaiCMRAjWw" // log file name (timestamp + random)
-	1759300313415 // expire
-	20 // value position
-	1 // value size
+/* key: a */ {
+  "1660073049777-XVlBzgbaiCMRAjWw" // log file name
+  1759300313415 // expire
+  20 // value position
+  1 // value size
 }
 ```
 
