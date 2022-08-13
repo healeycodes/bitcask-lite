@@ -6,6 +6,7 @@ A key/value database and server — partial implementation of the Bitcask paper:
 - Handles datasets larger than RAM
 - Human readable data format
 - Small specification
+- Human-readable data format
 - Just uses the Go standard library
 
 ## Spec
