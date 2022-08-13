@@ -15,8 +15,8 @@ import (
 )
 
 const DEFAULT_DATABASE_DIR = "./store"
-const MAX_LOG_FILE_BYTES = 1024 * 1024 * 32
-const SHARDS = 128
+const MAX_LOG_FILE_BYTES = 1024 * 1024 * 512
+const SHARDS = 128 // Tune this per your workload
 
 type LogStore struct {
 	logDir    string
