@@ -1,6 +1,6 @@
 # bitcask-lite
 
-A key/value database and server — partial implementation of the Bitcask paper: https://riak.com/assets/bitcask-intro.pdf
+A key/value database and server. Partial implementation of the Bitcask paper: https://riak.com/assets/bitcask-intro.pdf
 
 - Low latency per item read or written
 - Handles datasets larger than RAM
@@ -11,7 +11,7 @@ A key/value database and server — partial implementation of the Bitcask paper:
 
 ## Spec
 
-Items are stored in log files on disk to persist data. Keys are kept in-memory and point to values in log files. All new items are written to the active log file. Log files contain any number of adjacent items with the schema: `timestamp, keySize, valueSize, key, value,`.
+Keys are kept in-memory and point to values in log files. Log files are append-only and contain any number of adjacent items with the schema: `timestamp, keySize, valueSize, key, value,`.
 
 An item with a key of `a` and a value of `b` that expires on 10 Aug 2022 looks like this in a log file:
 
@@ -19,7 +19,7 @@ An item with a key of `a` and a value of `b` that expires on 10 Aug 2022 looks l
 1759300313415,1,1,a,b,
 ```
 
-Not yet implemented: checksums, log file merging, hint files.
+Not yet implemented: checksums, log file merging, hintfiles.
 
 ### HTTP API
 
@@ -31,7 +31,7 @@ Not yet implemented: checksums, log file merging, hint files.
 
 ## Performance
 
-The in-memory key store is a concurrent map. Each map shard has a lock to allow concurrent access.
+The key store is a concurrent map with locking map shards.
 
 Reading a value requires a single disk seek.
 
@@ -42,13 +42,13 @@ Only one goroutine may write to the the active log file at a time so read-heavy 
 Tests perform real I/O to disk and generate new files every run.
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt # (it just uses the requests library)
 python e2e.py # run e2e tests covering the main function
 go test ./... # unit tests
 ```
 
 ## Deployment
 
-It's a fairly standard Go application. Set `PORT`, `DATABASE_DIR`, and run.
+As this is fairly standard Go application: set `PORT`, `DATABASE_DIR`, and run.
 
-Deploys to `railway.app` with zero configuration (presumably most platforms as a service as well).
+It deploys to `railway.app` with zero configuration (presumably most platforms-as-a-service as well).
