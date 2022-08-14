@@ -11,7 +11,7 @@ A key/value database and server. Partial implementation of the Bitcask paper: ht
 
 ## Spec
 
-Keys are kept in-memory and point to values in log files. Log files are append-only and contain any number of adjacent items with the schema: `timestamp, keySize, valueSize, key, value,`.
+Keys are kept in-memory and point to values in log files. Log files are append-only and contain any number of adjacent items with the schema: `expire, keySize, valueSize, key, value,`.
 
 An item with a key of `a` and a value of `b` that expires on 10 Aug 2022 looks like this in a log file:
 
