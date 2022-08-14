@@ -18,6 +18,10 @@ const DEFAULT_DATABASE_DIR = "./store"
 const MAX_LOG_FILE_BYTES = 1024 * 1024 * 512
 const SHARDS = 128 // Tune this per your workload
 
+type LogStoreOptions struct {
+	maxLogFileBytes int
+}
+
 type LogStore struct {
 	logDir    string
 	keys      *ConcurrentMap[Item]
@@ -26,8 +30,11 @@ type LogStore struct {
 	opts      *LogStoreOptions
 }
 
-type LogStoreOptions struct {
-	maxLogFileBytes int
+type Item struct {
+	file      string
+	expire    int
+	valuePos  int
+	valueSize int
 }
 
 // StreamGet streams a value from the log store.
@@ -118,6 +125,7 @@ func (logStore *LogStore) Set(key string, expire int, value []byte) error {
 	return nil
 }
 
+// nextLogFile rolls the LogStore's log file to a newly created file
 func (logStore *LogStore) nextLogFile() error {
 	defer logStore.logFile.Close()
 	logFile, err := createLogFile(logStore.logDir)
@@ -128,13 +136,8 @@ func (logStore *LogStore) nextLogFile() error {
 	return nil
 }
 
-type Item struct {
-	file      string
-	expire    int
-	valuePos  int
-	valueSize int
-}
-
+// parseLogFile opens a log file and parses the items. It returns a key dictionary
+// without any expired items
 func parseLogFile(path string) (map[string]Item, error) {
 	const COMMA byte = 44
 
@@ -281,6 +284,7 @@ func CreateLogStore(logDir string, opts *LogStoreOptions) (*LogStore, error) {
 	}, nil
 }
 
+// createLogFile generates a log file on disk and returns a file pointer
 func createLogFile(logDir string) (*os.File, error) {
 	id := fmt.Sprintf("%d-%s", time.Now().UnixMilli(), rndFileString(16))
 	logFile, err := os.Create(path.Join(logDir, id))
@@ -290,6 +294,7 @@ func createLogFile(logDir string) (*os.File, error) {
 	return logFile, nil
 }
 
+// rndFileString returns a random string appropriate for a filename
 func rndFileString(length int) []byte {
 	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	b := make([]byte, length)
