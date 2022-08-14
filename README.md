@@ -1,4 +1,5 @@
 # bitcask-lite
+> My blog post: [Implementing Bitcask, a Log-Structured Hash Table](https://healeycodes.com/implementing-bitcask-a-log-structured-hash-table/)
 
 A key/value database and server. Partial implementation of the Bitcask paper: https://riak.com/assets/bitcask-intro.pdf
 
